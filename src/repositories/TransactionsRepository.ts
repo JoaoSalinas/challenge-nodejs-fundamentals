@@ -25,24 +25,26 @@ class TransactionsRepository {
 
   public getBalance(): Balance {
 
-    let input = 0;
-    let output = 0;
-
-    this.transactions.forEach(transaction => {
-      if(transaction.type === 'income'){
-        input += transaction.value
-      } else if (transaction.type === 'outcome') {
-        output += transaction.value
+    const {income, outcome} = this.transactions.reduce((accumulator, transaction) => {
+      switch(transaction.type) {
+        case "income":
+          accumulator.income += transaction.value
+          break
+        case "outcome":
+          accumulator.outcome += transaction.value
+          break
       }
-    })
-
-    const balance: Balance = {
-      income: input,
-      outcome: output,
-      total: input - output
+      return accumulator
+    },
+    {
+      income: 0,
+      outcome : 0,
     }
+    )
 
-    return balance
+    const total = income - outcome
+
+    return {income, outcome, total}
   }
 
   public create({title, value, type}: CreateTransaction): Transaction {

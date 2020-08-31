@@ -1,5 +1,5 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
-import { response } from 'express';
+import Transaction from '../models/Transaction';
 
 interface Request{
   title: string;
@@ -14,12 +14,16 @@ class CreateTransactionService {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute({title, value, type}: Request){
+  public execute({title, value, type}: Request): Transaction{
 
-    const transactionBalance = this.transactionsRepository.getBalance();
+    if(!['income', 'outcome'].includes(type)) {
+      throw new Error('Transaction type is invalid!');
+    }
 
-    if (type === 'outcome' && (transactionBalance.total - value < 0)) {
-      return response.status(400).json({error: "you don't have money for this transaction"});
+    const {total} = this.transactionsRepository.getBalance();
+
+    if (type === 'outcome' && total < value) {
+     throw new Error("you don't have enough balance");
     }
 
     const transaction = this.transactionsRepository.create({
